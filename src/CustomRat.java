@@ -1,17 +1,20 @@
-
 /**
- * This rat is has a small amount of memory that allows it to remember where it has been.
- * It’s recommended that this memory be implemented as a single variable
- * as you only need to remember the previous position.
+ * This rat is will use Breath First Search method
+ * Solution will contain a string which will lead to the exit
+ * BFS will take around 1 minute (with current maze size) to find the shortest path
  */
 
 import java.util.*;
 
 public class CustomRat implements Animal {
 
-    static Random rnd = new Random();
-
     // constructors
+    // this constructor will give current position of the mouse
+    public CustomRat(int x, int y) {
+        this.currentCol = x;
+        this.currentRow = y;
+    }
+
     public CustomRat() {
 
     }
@@ -22,19 +25,19 @@ public class CustomRat implements Animal {
     int currentRow = 0;
     String name = "Terry";
     int numMoves = 0;
+
     public String solution;
+    public boolean solutionFound = false;
     String[] direction = {"L", "R", "U", "D"};
-    String put;
-    String add = "";
+    String nextMove;
+    String coordinate = "";
     public Queue<String> nums = new LinkedList<>();
-
-
+    public ArrayList<CustomRat> visited = new ArrayList<>();
 
     // returns current row animal is in
     public int getRow() {
         return currentRow;
     }
-
 
     // returns current column animal is in
     public int getColumn() {
@@ -66,55 +69,39 @@ public class CustomRat implements Animal {
         return startRow;
     }
 
-    // asks animal to make a move in this maze. This is called by the Maze
-    public void move(Maze maz) {
-        if(nums.isEmpty()){
-            nums.add("");
-        }
-        boolean noMoveFound = true;
-
-        if (!findEnd(maz, add)) {
-            add = nums.remove();
+    /**
+     * Breath first search method
+     * add will initially blank but will receive a direction from the Queue
+     * nextMove = coor + (a direction) and put will be checked if the direction is can move or not
+     * for example: in maze 1, put = UU will return true
+     * all the possible path will be added to Queue 'nums'
+     *
+     * @param maz
+     */
+    public void BFS(Maze maz) {
+        if (!findEnd(maz, coordinate)) {
+            coordinate = nums.remove();
             for (String j : direction) {
-                put = add + j;
-                if (valid(maz, put)) {
-                    nums.add(put);
+                nextMove = coordinate + j;
+                if (valid(maz, nextMove)) {
+                    nums.add(nextMove);
                 }
             }
         }
-        else
-        {
-            if(!maz.ratHasEscaped()){
-                while(noMoveFound)
-                {
-                    char c = solution.charAt(numMoves);
-                    if (c == 'L') {
-                        currentCol--;
-                        noMoveFound = false;
-
-                    } else if (c == 'R') {
-                        currentCol++;
-                        noMoveFound = false;
-
-                    } else if (c == 'U') {
-                        currentRow--;
-                        noMoveFound = false;
-
-                    } else if (c == 'D') {
-                        currentRow++;
-                        noMoveFound = false;
-
-                    }
-                    numMoves++;
-                }
-            }
-        }
-
     }
 
+    /**
+     * check if the mouse can move in each direction "left, right, up, down"
+     *
+     * @param maz
+     * @param moves
+     * @return valid
+     */
     public boolean valid(Maze maz, String moves) {
+
         int i = currentCol;
         int j = currentRow;
+        CustomRat currentPos = new CustomRat(i, j);
         for (int k = 0; k < moves.length(); k++) {
             char c = moves.charAt(k);
             if (c == 'L') {
@@ -126,15 +113,46 @@ public class CustomRat implements Animal {
             } else if (c == 'D') {
                 j += 1;
             }
-            if (!maz.contains(j, i)) {
-                return false;
-            } else if (!maz.canMove(j, i)) {
-                return false;
-            }
         }
-        return true;
+        CustomRat check = new CustomRat(i, j);
+        // this if statement check if the following moves are in the maze, not a wall and not visited
+        if (!maz.contains(j, i)) {
+            return false;
+        } else if (!maz.canMove(j, i)) {
+            return false;
+        } else if (isVisited(check)) {
+            return false;
+        } else {
+            visited.add(check);
+            return true;
+        }
     }
 
+    /**
+     * Check if given location is already visited or not
+     *
+     * @param location
+     * @return flag
+     */
+    public boolean isVisited(CustomRat location) {
+        boolean flag = false;
+        for (int i = 0; i < visited.size(); i++) {
+            if (visited.get(i).currentRow == location.currentRow && visited.get(i).currentCol == location.currentCol) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
+    }
+
+    /**
+     * check if the current index match with FINISH 'F' in the maze
+     * if current index is match -> set solutionFound to true and return solution string
+     *
+     * @param maz
+     * @param moves
+     * @return findEnd
+     */
     public boolean findEnd(Maze maz, String moves) {
         int i = currentCol;
         int j = currentRow;
@@ -153,10 +171,51 @@ public class CustomRat implements Animal {
         }
         if (maz.getSquare(j, i) == Maze.FINISH) {
             solution = moves;
+            solutionFound = true;
             return true;
         }
         return false;
     }
+
+    // asks animal to make a move in this maze. This is called by the Maze
+    public void move(Maze maz) {
+        boolean noMoveFound = true;
+
+        // Add an empty string to nums so method findEnd can be executed
+        if (nums.isEmpty()) {
+            nums.add("");
+        }
+
+        // Breath first search is called when solution is not found
+        if (!solutionFound) {
+            BFS(maz);
+        } else {
+
+            if (!maz.ratHasEscaped()) {
+                while (noMoveFound) {
+                    char c = solution.charAt(numMoves);
+                    // Mouse will:
+                    // turn left if character is 'L'
+                    // turn right if character is 'R', etc.
+                    if (c == 'L') {
+                        currentCol--;
+                        noMoveFound = false;
+                    } else if (c == 'R') {
+                        currentCol++;
+                        noMoveFound = false;
+                    } else if (c == 'U') {
+                        currentRow--;
+                        noMoveFound = false;
+                    } else if (c == 'D') {
+                        currentRow++;
+                        noMoveFound = false;
+                    }
+                    numMoves++;
+                }
+            }
+        }
+    }
+
 
     // moves animal back to starting row/column, wipes # moves to 0
     public void reset() {
