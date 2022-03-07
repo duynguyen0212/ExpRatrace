@@ -1,4 +1,3 @@
-
 /**   This rat is has a small amount of memory that allows it to remember where it has been.
  *    It’s recommended that this memory be implemented as a single variable
  *    as you only need to remember the previous position.

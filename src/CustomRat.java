@@ -1,7 +1,7 @@
 /**
  * This rat is will use Breath First Search method
  * Solution will contain a string which will lead to the exit
- * BFS will take around 1 minute (with current maze size) to find the shortest path
+ * BFS will take around 1 minute 10 seconds (with current maze size) to find the shortest path
  */
 
 import java.util.*;
