@@ -60,8 +60,6 @@ public class WallHuggerRat implements Animal {
     // asks animal to make a move in this maze. This is called by the Maze
     public void move(Maze maz) {
         boolean noMoveFound = true;
-        if (!maz.ratHasEscaped()) {
-
             while (noMoveFound) {
                 if (lookRight(maz)) // facing forward initially, move right
                 {
@@ -88,7 +86,7 @@ public class WallHuggerRat implements Animal {
                 }
             }
             numMoves++;
-        }
+
     }
 
     /**
